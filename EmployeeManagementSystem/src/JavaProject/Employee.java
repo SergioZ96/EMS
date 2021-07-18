@@ -1,33 +1,37 @@
 package JavaProject;
 
 
-public class Employee extends Department{
+public class Employee extends Department {
 	
-	//Range definition for id
-	private int min = 1, max = 100;
+	private static int idCounter = 1;
 
 	// Attributes
 	private int id;
 	private String name;
 	private int salary;
-	private Department department;
+	private Department.DeptEnum department;
+	
 	
 	// Default constructor
 	public Employee() {
-		this.id = (int)(Math.random() * max) + min;
+		this.id = idCounter++;
 		this.name = null;
 		this.salary = 0;
 		this.department = null;
 	}
 	
 	// Overloaded Constructor
-	public Employee(String name, int salary, Department dept) {
-		this.id = (int)(Math.random() * max) + min;
+	public Employee(String name, int salary, Department.DeptEnum dept) {
+		this.id = idCounter++;
 		this.name = name;
 		this.salary = salary;
 		this.department = dept;
 	}
-
+	
+	public int getId() {
+		return id;
+	}
+	
 	public String getName() {
 		return name;
 	}
@@ -44,11 +48,11 @@ public class Employee extends Department{
 		this.salary = salary;
 	}
 
-	public Department getDepartment() {
+	public Department.DeptEnum getDepartment() {
 		return department;
 	}
 
-	public void setDepartment( Department department) {
+	public void setDepartment( Department.DeptEnum department) {
 		this.department = department;
 	}
 	
