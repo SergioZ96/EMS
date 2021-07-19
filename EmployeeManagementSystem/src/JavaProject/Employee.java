@@ -1,9 +1,14 @@
 package JavaProject;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 
-public class Employee extends Department {
+public class Employee extends Department implements Serializable{
+	
+	private static final long serialVersionUID = -6048262654478901337L;
 	
 	private static int idCounter = 1;
+	private static ArrayList<Employee> employeeList = new ArrayList<Employee>();
 
 	// Attributes
 	private int id;
@@ -18,6 +23,7 @@ public class Employee extends Department {
 		this.name = null;
 		this.salary = 0;
 		this.department = null;
+		this.employeeList.add(this);
 	}
 	
 	// Overloaded Constructor
@@ -26,7 +32,10 @@ public class Employee extends Department {
 		this.name = name;
 		this.salary = salary;
 		this.department = dept;
+		this.employeeList.add(this);
 	}
+	
+	// getters and setters
 	
 	public int getId() {
 		return id;
@@ -56,7 +65,15 @@ public class Employee extends Department {
 		this.department = department;
 	}
 	
-	// getters and setters
+	public static ArrayList<Employee> getAllEmployees() {
+		return employeeList;
+	}
+	
+	public static void setIdCounter(int counter) {
+		idCounter = counter;
+	}
+	
+	
 	
 	@Override
 	public String toString() {
