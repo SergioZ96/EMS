@@ -31,17 +31,17 @@ public class emsRunner {
 		// move each Employee into a row in csv file, and store list of Employees in separate data file
 		File file = new File("ems.csv");
 		if(!file.exists()) {
-			ArrayList<Employee> employees = fileToEmpAL(); 
-			toCSV(employees);
-			storeObjects(employees);
+			fileToEmpAL(); 
+			toCSV();
+			storeObjects();
 		}
 		
 		
 		System.out.println("Welcome to the Employee Management System");
 		
 		while(true) {
-			// retrieval of list of Employees from data file on startup, as another data source
-			ArrayList<Employee> storedEmps = readObjects();
+			// retrieval of list of Employees from data file on startup, and setting static Employee arraylist
+			Employee.setEmployees(readObjects());
 			
 			System.out.println("\nYou may enter an option: ");
 			System.out.println("1 - View all employees\n"
@@ -70,7 +70,7 @@ public class emsRunner {
 				case 2: // Show employees by department
 					
 					int deptNum;
-					System.out.println("Enter which department:\n1 - ACCOUNTING\n2 - RESEARCH_DEVELOPMENT\n3 - HUMAN_RESOURCES\n4 SALES_MARKETING\n"
+					System.out.println("Enter which department:\n1 - ACCOUNTING\n2 - RESEARCH_DEVELOPMENT\n3 - HUMAN_RESOURCES\n4 - SALES_MARKETING\n"
 							+ "5 - IT_SERVICES\n6 - MANAGEMENT");
 					deptNum = input.nextInt();
 					showEmployees(Department.DeptEnum.values()[deptNum - 1]);
@@ -94,7 +94,7 @@ public class emsRunner {
 					System.out.println("Enter new employee department: ");
 					department = input.nextLine();
 					
-					addEmployee(newName, newSalary, Department.getEnum(department), storedEmps);
+					addEmployee(newName, newSalary, Department.getEnum(department));
 					
 					break;
 					
@@ -102,7 +102,7 @@ public class emsRunner {
 					
 					input.nextLine(); //needed because we used nextInt() previously, which doesn't read the following new-line character
 					
-					storedEmps = updateEmployeeInfo(input, storedEmps);
+					updateEmployeeInfo(input);
 					break;
 					
 				case 5: // Delete employees
@@ -115,14 +115,14 @@ public class emsRunner {
 					name = input.nextLine();
 					
 					System.out.println(name);
-					storedEmps = deleteEmployee(name, storedEmps);
+					deleteEmployee(name);
 					break;
 					
 				case 6: // Print which employee with the highest salary
 					
 					input.nextLine(); //needed because we used nextInt() previously, which doesn't read the following new-line character
 					
-					List<Employee> highestPaid = storedEmps;
+					List<Employee> highestPaid = Employee.getEmployees();
 					 
 					Employee max = highestPaid.stream()
 							.max(Comparator.comparing(Employee::getSalary))
@@ -141,13 +141,13 @@ public class emsRunner {
 	
 	
 	/*
-	 * fileToEmpAl() returns an ArrayList of Employees
+	 * fileToEmpAl() 
 	 * 	- reads starter data from employee.txt, converts data into Employee objects, places them in an ArrayList
-	 * 	  to be returned 
+	 * 	  which is set to Employees static arraylist
 	 */
 	
 	
-	public static ArrayList<Employee> fileToEmpAL() throws IOException{
+	public static void fileToEmpAL() throws IOException{
 		
 		File file = new File("resources/employee.txt");
 		FileReader fileReader = null;
@@ -187,19 +187,20 @@ public class emsRunner {
 			
 		}
 		
-		return empArrayList;
+		Employee.setEmployees(empArrayList);
+	
 		
 	}
 	
 	
 	/*
-	 * toCSV(ArrayList<Employee>) to be used when passed the Employee ArrayList. 
+	 * toCSV()  
 	 *  - if ems.csv does not exist, it will create the file. Formats the data in 
 	 *    proper CSV form
 	 */
 	
 	
-	public static void toCSV(ArrayList<Employee> employees) {
+	public static void toCSV() {
 		
 		File file = null;
 		FileWriter fileWriter = null;
@@ -215,7 +216,7 @@ public class emsRunner {
 			fileWriter = new FileWriter(file);
 			bufferedWriter = new BufferedWriter(fileWriter);
 			
-			for(Employee e : employees) {
+			for(Employee e : Employee.getEmployees()) {
 				String csvString = e.getId() + "," + e.getName() + "," + e.getSalary() + "," + e.getDepartment().name() + "\n";
 				
 				bufferedWriter.write(csvString);
@@ -233,12 +234,12 @@ public class emsRunner {
 	}
 	
 	/*
-	 * storeObjects(ArrayList<Employees>) stores the Employee ArrayList into a .data file
+	 * storeObjects() stores the Employee static ArrayList into a .data file
 	 * 	- utilized as another way of storing data
 	 */
 	
 	
-	public static void storeObjects(ArrayList<Employee> empArrayList) {
+	public static void storeObjects() {
 		
 		File file = new File("resources/objectFile.data");
 		
@@ -252,7 +253,7 @@ public class emsRunner {
 		
 		try(ObjectOutputStream writer = new ObjectOutputStream(new FileOutputStream(file, false))){
 			
-			writer.writeObject(empArrayList);
+			writer.writeObject(Employee.getEmployees());
 			writer.close();
 			
 		} catch(IOException e) {
@@ -333,18 +334,21 @@ public class emsRunner {
 
 	
 	/*
-	 * addEmployee(String name, int salary, Department.DeptEnum dept, ArrayList<Employee>)
+	 * addEmployee(String name, int salary, Department.DeptEnum dept)
 	 * 	- adds employee to csv file as well as .data file
 	 */
 	
-	public static void addEmployee(String name, int salary, Department.DeptEnum dept, ArrayList<Employee> storedEmps) throws IOException{
+	public static void addEmployee(String name, int salary, Department.DeptEnum dept) throws IOException{
+		
+		ArrayList<Employee> emps = Employee.getEmployees();
 		
 		// static function for setting counter of employee ids
-		Employee.setIdCounter(storedEmps.get(storedEmps.size() - 1).getId() + 1);
+		Employee.setIdCounter(emps.get(emps.size() - 1).getId() + 1);
 		Employee newEmp = new Employee(name, salary, dept);
-		storedEmps.add(newEmp);
+		emps.add(newEmp);
 		
-		storeObjects(storedEmps);
+		Employee.setEmployees(emps);
+		storeObjects();
 		//System.out.println(storedEmps.size());
 		
 		File file = null;
@@ -372,7 +376,7 @@ public class emsRunner {
 			System.out.println("Something is wrong");
 		}
 		
-		for(Employee e : Employee.getAllEmployees()) {
+		for(Employee e : Employee.getEmployees()) {
 			System.out.println(e.toString());
 		}
 		
@@ -380,17 +384,18 @@ public class emsRunner {
 	
 	
 	/*
-	 * updateEmployeeInfo(Scanner input, ArrayList<Employee>) updates an Employee specified by their name.
+	 * updateEmployeeInfo(Scanner input) updates an Employee specified by their name.
 	 * 	- allows the option to modify both salary and department
-	 *  - rewrites the csv file as well as modifies attributes of the respective Employee object within the Employee ArrayList
+	 *  - rewrites the csv file as well as modifies attributes of the respective Employee object within the static Employee ArrayList
 	 */
 	
-	public static ArrayList<Employee> updateEmployeeInfo(Scanner input, ArrayList<Employee> storedEmps) {
+	public static void updateEmployeeInfo(Scanner input) {
 		
 		String inputName;
 		int selection;
 		System.out.println("Enter employee's name to make changes: ");
 		inputName = input.nextLine();
+		ArrayList<Employee> emps = Employee.getEmployees();
 		
 		
 		while(true) {
@@ -426,15 +431,15 @@ public class emsRunner {
 					temp.renameTo(originalFile);
 					
 					//ArrayList<Employee> refreshedEmps = new ArrayList<Employee>();
-					for(int i = 0; i < storedEmps.size(); i++) {
-						if(storedEmps.get(i).getName().equals(inputName)) {
-							storedEmps.get(i).setSalary(newSalary);
+					for(int i = 0; i < emps.size(); i++) {
+						if(emps.get(i).getName().equals(inputName)) {
+							emps.get(i).setSalary(newSalary);
 							break;
 						}
 						
 					}
-						
-					storeObjects(storedEmps);
+					Employee.setEmployees(emps);
+					storeObjects();
 					
 					
 				}
@@ -462,22 +467,23 @@ public class emsRunner {
 					File originalFile = new File("resources/ems.csv");
 					temp.renameTo(originalFile);
 					
-					for(int i = 0; i < storedEmps.size(); i++) {
-						if(storedEmps.get(i).getName().equals(inputName)) {
-							storedEmps.get(i).setDepartment(newDept);
+					for(int i = 0; i < emps.size(); i++) {
+						if(emps.get(i).getName().equals(inputName)) {
+							emps.get(i).setDepartment(newDept);
 							break;
 						}
 						
 					}
 						
-					storeObjects(storedEmps);
+					Employee.setEmployees(emps);
+					storeObjects();
 					
 					
 				}
 				else if(selection == 3) {
 					bufferedReader.close();
 					bufferedWriter.close();
-					return storedEmps;
+					break;
 					
 				}
 				
@@ -490,11 +496,13 @@ public class emsRunner {
 	
 	
 	/*
-	 * deleteEmployees(String name, ArrayList<Employee>) deletes an employee by specifying their name.
+	 * deleteEmployees(String name) deletes an employee by specifying their name.
 	 * 	- reads and rewrites the ems.csv file as well as the .data file of Employee ArrayList
 	 */
 	
-	public static ArrayList<Employee> deleteEmployee(String name, ArrayList<Employee> storedEmps) {
+	public static void deleteEmployee(String name) {
+		ArrayList<Employee> emps = Employee.getEmployees();
+		
 		File oldFile = null;
 		FileReader fileReader = null;
 		BufferedReader bufferedReader = null;
@@ -543,19 +551,17 @@ public class emsRunner {
 		
 		// Filtering out deleted employee from list
 		ArrayList<Employee> refreshedEmps = new ArrayList<Employee>();
-		for(Employee e : storedEmps) {
+		for(Employee e : emps) {
 			if(e.getName().equals(name)) {
 				continue;
 			}
 			refreshedEmps.add(e);
 		}
-			
-		storeObjects(refreshedEmps);
-//		System.out.println(storedEmps.size());
-//		for(Employee e : storedEmps) {
-//			System.out.println(e.toString());
-//		}
-		return refreshedEmps;
+		
+		Employee.setEmployees(refreshedEmps);
+		storeObjects();
+
+	
 	}
 
 }

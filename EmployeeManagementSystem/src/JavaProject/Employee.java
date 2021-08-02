@@ -65,14 +65,17 @@ public class Employee extends Department implements Serializable{
 		this.department = department;
 	}
 	
-	public static ArrayList<Employee> getAllEmployees() {
+	public static ArrayList<Employee> getEmployees() {
 		return employeeList;
+	}
+	
+	public static void setEmployees(ArrayList<Employee> empList) {
+		Employee.employeeList = empList;
 	}
 	
 	public static void setIdCounter(int counter) {
 		idCounter = counter;
 	}
-	
 	
 	
 	@Override
